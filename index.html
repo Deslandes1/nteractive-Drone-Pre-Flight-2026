@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Condor X8 · Pre-Flight Check</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg-color: #e8efe9; /* Matches the screenshot background */
+      --text-main: #1a1a1a;
+      --text-muted: #7a8b7e;
+      --card-bg: #ffffff;
+      --accent-green: #a3d9a5;
+      --accent-green-dark: #4caf50;
+      --icon-bg: #f0f5f1;
+      --border-radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Mobile App Container */
+    .app-container {
+      width: 100%;
+      max-width: 400px;
+      height: 100vh;
+      max-height: 850px;
+      background-color: var(--bg-color);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 24px 20px;
+      z-index: 10;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      background: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      cursor: pointer;
+      margin-right: 16px;
+    }
+
+    .title-area {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .title-area h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .title-area p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .dot {
+      width: 18px;
+      height: 3px;
+      background-color: #d1dcd3;
+      border-radius: 2px;
+    }
+    
+    .dot.active {
+      background-color: var(--text-main);
+    }
+
+    /* 3D Canvas Area */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+    }
+
+    #canvas3d {
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    /* Bottom Sheet / Checklist */
+    .checklist-panel {
+      background: var(--bg-color);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 30px;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checklist-item {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--icon-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .icon-box svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .item-info h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .item-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .item-status {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-waiting {
+      color: var(--text-muted);
+      background: transparent;
+    }
+
+    .status-testing {
+      color: #b07d28;
+      background: #fdf5e6;
+    }
+
+    .status-success {
+      color: #2e7d32;
+      background: #e8f5e9;
+    }
+
+    /* Spinners */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0,0,0,0.1);
+      border-top-color: var(--text-muted);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .spinner-green {
+      border-top-color: var(--accent-green-dark);
+    }
+
+    /* Main Action Button */
+    .action-btn {
+      background: var(--accent-green);
+      color: #ffffff;
+      border: none;
+      border-radius: 30px;
+      padding: 18px;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(163, 217, 165, 0.4);
+    }
+
+    .action-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .action-btn.ready {
+      background: var(--accent-green-dark);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Rotor Spin Animation state */
+    .rotor-spin {
+      animation: spin 0.1s linear infinite;
+      transform-origin: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="back-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </div>
+      <div class="title-area">
+        <h1>Pre-flight check</h1>
+        <p>Condor X8</p>
+        <div class="progress-dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Drone Area -->
+    <div class="canvas-container">
+      <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- Checklist Panel -->
+    <div class="checklist-panel">
+      
+      <!-- Battery Item -->
+      <div class="checklist-item" id="item-battery">
+        <div class="item-left">
+          <div class="icon-box" style="color: #4caf50;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+              <line x1="22" y1="11" x2="22" y2="13"></line>
+            </svg>
+          </div>
+          <div class="item-info">
+            <h3>Battery</h3>
+            <p id="battery-text">Waiting for telemetry...</p>
+          </div>
+        </div>
+        <div class="item-status status-waiting" id="battery-status">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Propellers Item -->
+      <div class="checklist-item" id="item-propellers">
+        <div class="item-left">
+          <div class="icon-box" style="color: #9c27b0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+            </svg>
+          </div>
+          <div class="item-info">
+            <h3>Propellers</h3>
+            <p id="propeller-text">Testing rotors...</p>
+          </div>
+        </div>
+        <div class="item-status status-waiting" id="propeller-status">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- GPS Item -->
+      <div class="checklist-item" id="item-gps">
+        <div class="item-left">
+          <div class="icon-box" style="color: #2196f3;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <line x1="12" y1="2" x2="12" y2="4"></line>
+              <line x1="12" y1="20" x2="12" y2="22"></line>
+              <line x1="2" y1="12" x2="4" y2="12"></line>
+              <line x1="20" y1="12" x2="22" y2="12"></line>
+            </svg>
+          </div>
+          <div class="item-info">
+            <h3>GPS</h3>
+            <p id="gps-text">Acquiring satellites...</p>
+          </div>
+        </div>
+        <div class="item-status status-waiting" id="gps-status">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button class="action-btn" id="main-btn" disabled>
+        <div class="spinner spinner-green"></div>
+        Checking...
+      </button>
+    </div>
+  </div>
+
+  <!-- Load Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <script>
+    // ==========================================
+    // 1. THREE.JS 3D DRONE SCENE
+    // ==========================================
+    const canvas = document.getElementById('canvas3d');
+    const container = canvas.parentElement;
+    
+    const scene = new THREE.Scene();
+    // Make 3D scene background transparent to blend with CSS
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 4, 8);
+    camera.lookAt(0, 0, 0);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 10, 5);
+    scene.add(dirLight);
+
+    // Create the Drone Group
+    const droneGroup = new THREE.Group();
+    scene.add(droneGroup);
+
+    // Materials
+    const darkMetal = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.8 });
+    const yellowAccent = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
+    const propMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
+
+    // Drone Body (Central Hub)
+    const bodyGeo = new THREE.CylinderGeometry(0.8, 1, 0.4, 8);
+    const body = new THREE.Mesh(bodyGeo, darkMetal);
+    droneGroup.add(body);
+
+    const topCover = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.2, 8), yellowAccent);
+    topCover.position.y = 0.3;
+    droneGroup.add(topCover);
+
+    // Function to create an arm + rotor
+    const rotors = [];
+    function createArm(angle) {
+      const armGroup = new THREE.Group();
+      
+      // Arm
+      const armGeo = new THREE.BoxGeometry(1.8, 0.1, 0.15);
+      const arm = new THREE.Mesh(armGeo, darkMetal);
+      arm.position.x = 1;
+      armGroup.add(arm);
+
+      // Motor
+      const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.25, 8), darkMetal);
+      motor.position.set(1.9, 0.1, 0);
+      armGroup.add(motor);
+
+      // Propeller
+      const propGroup = new THREE.Group();
+      propGroup.position.set(1.9, 0.25, 0);
+      
+      const blade1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.02, 0.1), propMaterial);
+      const blade2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.02, 0.1), propMaterial);
+      blade2.rotation.y = Math.PI / 2;
+      
+      propGroup.add(blade1);
+      propGroup.add(blade2);
+      armGroup.add(propGroup);
+      
+      rotors.push(propGroup);
+
+      // Rotate whole arm based on angle
+      armGroup.rotation.y = angle;
+      droneGroup.add(armGroup);
+    }
+
+    // Create 4 arms
+    createArm(Math.PI / 4);
+    createArm(3 * Math.PI / 4);
+    createArm(5 * Math.PI / 4);
+    createArm(7 * Math.PI / 4);
+
+    // Landing Gear
+    const gearGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8);
+    const gear1 = new THREE.Mesh(gearGeo, darkMetal);
+    gear1.position.set(0.4, -0.4, 0.4);
+    droneGroup.add(gear1);
+    const gear2 = new THREE.Mesh(gearGeo, darkMetal);
+    gear2.position.set(-0.4, -0.4, 0.4);
+    droneGroup.add(gear2);
+    const gear3 = new THREE.Mesh(gearGeo, darkMetal);
+    gear3.position.set(0.4, -0.4, -0.4);
+    droneGroup.add(gear3);
+    const gear4 = new THREE.Mesh(gearGeo, darkMetal);
+    gear4.position.set(-0.4, -0.4, -0.4);
+    droneGroup.add(gear4);
+
+    // Add a glowing landing pad under the drone
+    const padGeo = new THREE.RingGeometry(2, 2.2, 32);
+    const padMat = new THREE.MeshBasicMaterial({ color: 0xd1dcd3, side: THREE.DoubleSide });
+    const pad = new THREE.Mesh(padGeo, padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.y = -0.8;
+    scene.add(pad);
+
+    // Resize handler
+    function onWindowResize() {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', onWindowResize);
+    onWindowResize();
+
+    // Animation Loop
+    let rotorSpeed = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Rotate the drone slightly for a dynamic view
+      droneGroup.rotation.y += 0.002;
+      
+      // Spin rotors if speed > 0
+      if (rotorSpeed > 0) {
+        rotors.forEach(rotor => {
+          rotor.rotation.y += rotorSpeed;
+        });
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+
+    // ==========================================
+    // 2. FLIGHT CONTROLLER / MAVLINK SIMULATOR
+    // ==========================================
+    
+    const ui = {
+      batteryText: document.getElementById('battery-text'),
+      batteryStatus: document.getElementById('battery-status'),
+      propText: document.getElementById('propeller-text'),
+      propStatus: document.getElementById('propeller-status'),
+      gpsText: document.getElementById('gps-text'),
+      gpsStatus: document.getElementById('gps-status'),
+      btn: document.getElementById('main-btn')
+    };
+
+    let checks = {
+      battery: false,
+      propellers: false,
+      gps: false
+    };
+
+    // Helper to set UI states
+    function updateUIState(elementId, state, text) {
+      const item = document.getElementById(`item-${elementId}`);
+      const statusDiv = document.getElementById(`${elementId}-status`);
+      const textP = document.getElementById(`${elementId}-text`);
+      
+      if (text) textP.textContent = text;
+
+      if (state === 'success') {
+        statusDiv.className = 'item-status status-success';
+        statusDiv.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+      } else if (state === 'testing') {
+        statusDiv.className = 'item-status status-testing';
+        statusDiv.innerHTML = `<div class="spinner"></div>`;
+      }
+    }
+
+    // Check all passed
+    function checkCompletion() {
+      if (checks.battery && checks.propellers && checks.gps) {
+        ui.btn.disabled = false;
+        ui.btn.className = 'action-btn ready';
+        ui.btn.innerHTML = `🚀 Ready to Launch`;
+      }
+    }
+
+    // Start the sequence when the page loads
+    function startPreFlightSequence() {
+      
+      // 1. BATTERY SIMULATION (Takes 2 seconds)
+      setTimeout(() => {
+        updateUIState('battery', 'testing', 'Reading telemetry...');
+      }, 500);
+
+      setTimeout(() => {
+        updateUIState('battery', 'success', '64% · 29 min flight');
+        checks.battery = true;
+        checkCompletion();
+      }, 2500);
+
+      // 2. PROPELLER SIMULATION (Takes 4 seconds, spinning 3D model)
+      setTimeout(() => {
+        updateUIState('propellers', 'testing', 'Testing rotor 1 of 4...');
+        rotorSpeed = 0.5; // Start spinning 3D rotors
+        
+        // Simulate checking each rotor
+        let rotorCount = 1;
+        const rotorInterval = setInterval(() => {
+          rotorCount++;
+          if (rotorCount <= 4) {
+            updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
+          } else {
+            clearInterval(rotorInterval);
+            updateUIState('propellers', 'success', 'All motors nominal');
+            rotorSpeed = 0; // Stop spinning
+            checks.propellers = true;
+            checkCompletion();
+          }
+        }, 1000);
+      }, 3000);
+
+      // 3. GPS SIMULATION (Takes 5 seconds)
+      setTimeout(() => {
+        updateUIState('gps', 'testing', 'Acquiring satellites...');
+      }, 6000);
+
+      setTimeout(() => {
+        updateUIState('gps', 'success', '3D Fix · 12 Sats');
+        checks.gps = true;
+        checkCompletion();
+      }, 11000);
+    }
+
+    // Button Action
+    ui.btn.addEventListener('click', () => {
+      if (ui.btn.classList.contains('ready')) {
+        // Launch animation sequence
+        ui.btn.innerHTML = `🛫 Launching...`;
+        ui.btn.style.background = '#4caf50';
+        
+        // Animate drone flying up
+        let flyUp = setInterval(() => {
+          droneGroup.position.y += 0.05;
+          if (droneGroup.position.y > 5) {
+            clearInterval(flyUp);
+            setTimeout(() => {
+              alert("🚁 Drone Launched Successfully! (Simulation)");
+              // Reset
+              droneGroup.position.y = 0;
+              ui.btn.innerHTML = `🚀 Ready to Launch`;
+            }, 500);
+          }
+        }, 30);
+      }
+    });
+
+    // Kickoff the simulation when page loads
+    window.addEventListener('load', () => {
+      setTimeout(startPreFlightSequence, 1000);
+    });
+
+  </script>
+</body>
+</html>
