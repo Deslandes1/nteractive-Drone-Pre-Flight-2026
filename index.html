@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Condor X8 · Pre-Flight & Flight Simulator</title>
+  <title>Condor X8 · Flight Simulator</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -24,6 +24,7 @@
       padding: 0;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
@@ -82,23 +83,6 @@
       margin-top: 2px;
     }
 
-    .progress-dots {
-      display: flex;
-      gap: 4px;
-      margin-top: 6px;
-    }
-
-    .dot {
-      width: 18px;
-      height: 3px;
-      background-color: #d1dcd3;
-      border-radius: 2px;
-    }
-    
-    .dot.active {
-      background-color: var(--text-main);
-    }
-
     /* 3D Canvas Area */
     .canvas-container {
       flex: 1;
@@ -112,13 +96,14 @@
     }
 
     .canvas-container.flying {
-      background-color: #8eb5d1; /* Sky blue when flying */
+      background-color: #8eb5d1;
     }
 
     #canvas3d {
       width: 100%;
       height: 100%;
       outline: none;
+      display: block;
     }
 
     /* Checklist Panel */
@@ -150,11 +135,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.02);
     }
 
-    .item-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .item-left { display: flex; align-items: center; gap: 14px; }
 
     .icon-box {
       width: 44px;
@@ -167,16 +148,8 @@
       color: var(--text-muted);
     }
 
-    .item-info h3 {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .item-info p {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+    .item-info h3 { font-size: 14px; font-weight: 600; }
+    .item-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
     .item-status {
       font-size: 12px;
@@ -219,11 +192,9 @@
       gap: 10px;
     }
 
-    .action-btn.ready {
-      background: var(--accent-green-dark);
-    }
+    .action-btn.ready { background: var(--accent-green-dark); }
 
-    /* Flight HUD */
+    /* In-Game UI */
     #flightHUD {
       position: absolute;
       top: 20px;
@@ -237,9 +208,7 @@
       z-index: 5;
     }
 
-    #flightHUD.active {
-      opacity: 1;
-    }
+    #flightHUD.active { opacity: 1; }
 
     .hud-panel {
       background: rgba(0,0,0,0.6);
@@ -251,52 +220,116 @@
       border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .controls-hint {
+    #restartBtn {
+      position: absolute;
+      top: 20px;
+      right: 50%;
+      transform: translateX(50%);
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      z-index: 15;
+      box-shadow: 0 4px 10px rgba(255,68,68,0.4);
+    }
+
+    /* Touch Controls */
+    #touchControls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      display: none;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .joystick-base {
+      width: 120px;
+      height: 120px;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 50%;
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .joystick-stick {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      pointer-events: auto;
+    }
+
+    .touch-btn {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.3);
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .touch-btn:active { background: rgba(255,255,255,0.6); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Desktop Hint */
+    .desktop-hint {
       position: absolute;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.7);
       color: #fff;
-      padding: 10px 15px;
+      padding: 10px 20px;
       border-radius: 20px;
-      font-size: 12px;
-      text-align: center;
+      font-size: 13px;
+      white-space: nowrap;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.5s ease;
-      white-space: nowrap;
-      z-index: 15;
+      transition: opacity 0.5s;
     }
-
-    .controls-hint.active {
-      opacity: 1;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    .desktop-hint.active { opacity: 1; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     
-    <!-- Main Header -->
+    <!-- Header -->
     <div class="header" id="mainHeader">
       <div class="back-btn" id="backBtn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </div>
       <div class="title-area">
         <h1 id="headerTitle">Pre-flight check</h1>
         <p id="headerSubtitle">Condor X8</p>
-        <div class="progress-dots" id="headerDots">
-          <div class="dot active"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
       </div>
     </div>
 
@@ -304,15 +337,26 @@
     <div class="canvas-container" id="canvasContainer">
       <canvas id="canvas3d"></canvas>
       
-      <!-- Flight HUD -->
       <div id="flightHUD">
         <div class="hud-panel">ALT: <span id="hudAlt">0.0</span>m</div>
         <div class="hud-panel">SPD: <span id="hudSpd">0.0</span>km/h</div>
       </div>
 
-      <!-- Controls Hint -->
-      <div class="controls-hint" id="controlsHint">
-        Use <b>W A S D</b> to fly · <b>Space</b> to ascend · <b>Shift</b> to descend
+      <button id="restartBtn" onclick="window.location.reload()">RESTART</button>
+
+      <div class="desktop-hint" id="desktopHint">
+        <b>W A S D</b> to fly · <b>Space</b> Up · <b>Shift</b> Down
+      </div>
+
+      <!-- Touch Controls (Only shows on mobile) -->
+      <div id="touchControls">
+        <div class="joystick-base" id="joystickBase">
+          <div class="joystick-stick" id="joystickStick"></div>
+        </div>
+        <div class="action-buttons">
+          <div class="touch-btn" id="btnUp">▲</div>
+          <div class="touch-btn" id="btnDown">▼</div>
+        </div>
       </div>
     </div>
 
@@ -326,12 +370,10 @@
           </div>
           <div class="item-info">
             <h3>Battery</h3>
-            <p id="battery-text">Waiting for telemetry...</p>
+            <p id="battery-text">Waiting...</p>
           </div>
         </div>
-        <div class="item-status status-testing" id="battery-status">
-          <div class="spinner"></div>
-        </div>
+        <div class="item-status status-testing" id="battery-status"><div class="spinner"></div></div>
       </div>
 
       <div class="checklist-item" id="item-propellers">
@@ -341,12 +383,10 @@
           </div>
           <div class="item-info">
             <h3>Propellers</h3>
-            <p id="propeller-text">Testing rotors...</p>
+            <p id="propeller-text">Testing...</p>
           </div>
         </div>
-        <div class="item-status status-testing" id="propeller-status">
-          <div class="spinner"></div>
-        </div>
+        <div class="item-status status-testing" id="propeller-status"><div class="spinner"></div></div>
       </div>
 
       <div class="checklist-item" id="item-gps">
@@ -356,23 +396,19 @@
           </div>
           <div class="item-info">
             <h3>GPS</h3>
-            <p id="gps-text">Acquiring satellites...</p>
+            <p id="gps-text">Acquiring...</p>
           </div>
         </div>
-        <div class="item-status status-testing" id="gps-status">
-          <div class="spinner"></div>
-        </div>
+        <div class="item-status status-testing" id="gps-status"><div class="spinner"></div></div>
       </div>
 
       <button class="action-btn" id="main-btn" disabled>
-        <div class="spinner spinner-green"></div>
-        Checking...
+        <div class="spinner spinner-green"></div> Checking...
       </button>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
   <script>
     // ==========================================
     // 1. THREE.JS SETUP
@@ -381,7 +417,7 @@
     const container = canvas.parentElement;
     
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe8efe9); // Initial menu background
+    scene.background = new THREE.Color(0xe8efe9);
     
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -389,20 +425,15 @@
     
     const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 4, 8);
-    camera.lookAt(0, 0, 0);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
     dirLight.position.set(10, 20, 10);
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    // ==========================================
-    // 2. ENVIRONMENT (Hidden initially)
-    // ==========================================
+    // Environment (Hidden until flight)
     const environmentGroup = new THREE.Group();
     environmentGroup.visible = false;
     scene.add(environmentGroup);
@@ -412,10 +443,10 @@
     gridHelper.position.y = -0.8;
     environmentGroup.add(gridHelper);
 
-    // A few 3D blocks to fly around
+    // Obstacles
     const blockMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.8 });
-    for(let i=0; i<20; i++) {
-      const h = Math.random() * 5 + 1;
+    for(let i=0; i<25; i++) {
+      const h = Math.random() * 6 + 1;
       const block = new THREE.Mesh(new THREE.BoxGeometry(2, h, 2), blockMat);
       block.position.set((Math.random() - 0.5) * 40, h/2 - 0.8, (Math.random() - 0.5) * 40);
       block.castShadow = true;
@@ -423,9 +454,7 @@
       environmentGroup.add(block);
     }
 
-    // ==========================================
-    // 3. DRONE MODEL
-    // ==========================================
+    // Drone Model
     const droneGroup = new THREE.Group();
     scene.add(droneGroup);
 
@@ -433,72 +462,38 @@
     const yellowAccent = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
     const propMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
 
-    // Body
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 0.4, 8), darkMetal);
     droneGroup.add(body);
-
     const topCover = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.2, 8), yellowAccent);
     topCover.position.y = 0.3;
     droneGroup.add(topCover);
 
-    // Arms & Rotors
     const rotors = [];
     function createArm(angle) {
       const armGroup = new THREE.Group();
-      
       const arm = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.15), darkMetal);
-      arm.position.x = 1;
-      armGroup.add(arm);
-
+      arm.position.x = 1; armGroup.add(arm);
       const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.25, 8), darkMetal);
-      motor.position.set(1.9, 0.1, 0);
-      armGroup.add(motor);
-
+      motor.position.set(1.9, 0.1, 0); armGroup.add(motor);
       const propGroup = new THREE.Group();
       propGroup.position.set(1.9, 0.25, 0);
-      
-      const blade1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.02, 0.1), propMaterial);
+      propGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.02, 0.1), propMaterial));
       const blade2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.02, 0.1), propMaterial);
-      blade2.rotation.y = Math.PI / 2;
-      
-      propGroup.add(blade1, blade2);
-      armGroup.add(propGroup);
-      
-      rotors.push(propGroup);
-      armGroup.rotation.y = angle;
-      droneGroup.add(armGroup);
+      blade2.rotation.y = Math.PI / 2; propGroup.add(blade2);
+      armGroup.add(propGroup); rotors.push(propGroup);
+      armGroup.rotation.y = angle; droneGroup.add(armGroup);
     }
-
-    createArm(Math.PI / 4);
-    createArm(3 * Math.PI / 4);
-    createArm(5 * Math.PI / 4);
-    createArm(7 * Math.PI / 4);
-
-    // Landing Gear
-    const gearGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8);
-    [[0.4, -0.4, 0.4], [-0.4, -0.4, 0.4], [0.4, -0.4, -0.4], [-0.4, -0.4, -0.4]].forEach(pos => {
-      const gear = new THREE.Mesh(gearGeo, darkMetal);
-      gear.position.set(...pos);
-      droneGroup.add(gear);
-    });
-
-    // Landing Pad (Only visible before flight)
-    const pad = new THREE.Mesh(new THREE.RingGeometry(2, 2.2, 32), new THREE.MeshBasicMaterial({ color: 0xd1dcd3, side: THREE.DoubleSide }));
-    pad.rotation.x = -Math.PI / 2;
-    pad.position.y = -0.8;
-    scene.add(pad);
+    createArm(Math.PI / 4); createArm(3 * Math.PI / 4); createArm(5 * Math.PI / 4); createArm(7 * Math.PI / 4);
 
     // ==========================================
-    // 4. GAME STATE & CONTROLS
+    // 2. GAME STATE & INPUTS
     // ==========================================
     let isFlying = false;
     let rotorSpeed = 0;
-    
-    // Physics state
-    const droneVelocity = new THREE.Vector3(0, 0, 0);
+    let droneYaw = 0;
     const dronePosition = new THREE.Vector3(0, 0, 0);
-    let droneYaw = 0; 
     
+    // Keyboard Inputs
     const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
 
     window.addEventListener('keydown', (e) => {
@@ -521,19 +516,76 @@
       if (e.key === 'Shift') keys.shift = false;
     });
 
-    // ==========================================
-    // 5. FLIGHT CONTROLLER SIMULATOR
-    // ==========================================
+    // Touch Inputs (Joystick)
+    let touchActive = false;
+    let touchStartX = 0, touchStartY = 0;
+    let joyX = 0, joyY = 0;
     
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+
+    // Detect mobile
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      document.getElementById('touchControls').style.display = 'flex';
+    }
+
+    function handleJoystickStart(e) {
+      e.preventDefault();
+      touchActive = true;
+      const rect = joystickBase.getBoundingClientRect();
+      touchStartX = rect.left + rect.width / 2;
+      touchStartY = rect.top + rect.height / 2;
+    }
+
+    function handleJoystickMove(e) {
+      if (!touchActive) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      
+      const maxDist = 40;
+      const dist = Math.min(Math.hypot(dx, dy), maxDist);
+      const angle = Math.atan2(dy, dx);
+      
+      joyX = Math.cos(angle) * (dist / maxDist);
+      joyY = Math.sin(angle) * (dist / maxDist);
+      
+      joystickStick.style.transform = `translate(calc(-50% + ${joyX * maxDist}px), calc(-50% + ${joyY * maxDist}px))`;
+    }
+
+    function handleJoystickEnd(e) {
+      e.preventDefault();
+      touchActive = false;
+      joyX = 0; joyY = 0;
+      joystickStick.style.transform = `translate(-50%, -50%)`;
+    }
+
+    joystickBase.addEventListener('touchstart', handleJoystickStart, { passive: false });
+    joystickBase.addEventListener('touchmove', handleJoystickMove, { passive: false });
+    joystickBase.addEventListener('touchend', handleJoystickEnd, { passive: false });
+
+    // Up/Down Buttons
+    btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); keys.space = true; });
+    btnUp.addEventListener('touchend', (e) => { e.preventDefault(); keys.space = false; });
+    btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); keys.shift = true; });
+    btnDown.addEventListener('touchend', (e) => { e.preventDefault(); keys.shift = false; });
+
+
+    // ==========================================
+    // 3. PRE-FLIGHT CHECKLIST
+    // ==========================================
     const ui = {
       btn: document.getElementById('main-btn'),
       headerTitle: document.getElementById('headerTitle'),
       headerSubtitle: document.getElementById('headerSubtitle'),
-      headerDots: document.getElementById('headerDots'),
       checklistPanel: document.getElementById('checklistPanel'),
       canvasContainer: document.getElementById('canvasContainer'),
       flightHUD: document.getElementById('flightHUD'),
-      controlsHint: document.getElementById('controlsHint'),
+      desktopHint: document.getElementById('desktopHint'),
+      restartBtn: document.getElementById('restartBtn'),
       hudAlt: document.getElementById('hudAlt'),
       hudSpd: document.getElementById('hudSpd')
     };
@@ -563,157 +615,136 @@
     }
 
     function startPreFlightSequence() {
-      // Battery
       setTimeout(() => updateUIState('battery', 'testing', 'Reading telemetry...'), 300);
-      setTimeout(() => {
-        updateUIState('battery', 'success', '64% · 29 min flight');
-        checks.battery = true; checkCompletion();
-      }, 1800);
+      setTimeout(() => { updateUIState('battery', 'success', '64% · 29 min'); checks.battery = true; checkCompletion(); }, 1500);
 
-      // Propellers
       setTimeout(() => {
         updateUIState('propellers', 'testing', 'Testing rotor 1 of 4...');
         rotorSpeed = 0.8;
         let rotorCount = 1;
-        const rotorInterval = setInterval(() => {
+        const int = setInterval(() => {
           rotorCount++;
-          if (rotorCount <= 4) {
-            updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
-          } else {
-            clearInterval(rotorInterval);
+          if (rotorCount <= 4) updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
+          else {
+            clearInterval(int);
             updateUIState('propellers', 'success', 'All motors nominal');
-            rotorSpeed = 0;
-            checks.propellers = true; checkCompletion();
+            rotorSpeed = 0; checks.propellers = true; checkCompletion();
           }
-        }, 350);
-      }, 2200);
+        }, 300);
+      }, 1800);
 
-      // GPS
-      setTimeout(() => updateUIState('gps', 'testing', 'Acquiring satellites...'), 4500);
-      setTimeout(() => {
-        updateUIState('gps', 'success', '3D Fix · 12 Sats');
-        checks.gps = true; checkCompletion();
-      }, 6500);
+      setTimeout(() => updateUIState('gps', 'testing', 'Acquiring satellites...'), 3500);
+      setTimeout(() => { updateUIState('gps', 'success', '3D Fix · 12 Sats'); checks.gps = true; checkCompletion(); }, 5000);
     }
 
     // ==========================================
-    // 6. LAUNCH & FLIGHT LOGIC
+    // 4. LAUNCH & FLIGHT LOGIC
     // ==========================================
-    
     ui.btn.addEventListener('click', () => {
       if (ui.btn.classList.contains('ready')) {
-        // Transition to Flight Mode
         isFlying = true;
-        ui.btn.innerHTML = `🛫 Launching...`;
         
-        // Hide UI
         ui.headerTitle.textContent = "Flight Mode";
-        ui.headerSubtitle.textContent = "Live Telemetry";
-        ui.headerDots.style.opacity = '0';
-        
+        ui.headerSubtitle.textContent = "Condor X8";
         ui.checklistPanel.classList.add('hidden');
         ui.flightHUD.classList.add('active');
-        ui.controlsHint.classList.add('active');
+        ui.restartBtn.style.display = 'block';
         
-        // Change environment
-        ui.canvasContainer.classList.add('flying');
-        scene.background = new THREE.Color(0x8eb5d1); // Sky blue
-        environmentGroup.visible = true;
-        pad.visible = false;
-        
-        // Start rotors
-        rotorSpeed = 1.5;
+        // Show correct hint
+        if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+          ui.desktopHint.classList.add('active');
+        }
 
-        // Auto ascend a bit
+        ui.canvasContainer.classList.add('flying');
+        scene.background = new THREE.Color(0x8eb5d1);
+        environmentGroup.visible = true;
+        
+        rotorSpeed = 1.5;
         setTimeout(() => { dronePosition.y += 2; }, 500);
       }
     });
 
     // ==========================================
-    // 7. ANIMATION LOOP
+    // 5. ANIMATION LOOP
     // ==========================================
     function animate() {
       requestAnimationFrame(animate);
 
       if (!isFlying) {
-        // MENU MODE: Cinematic slow orbit
+        // Menu Mode
         droneGroup.rotation.y += 0.003;
         droneGroup.position.copy(dronePosition);
-        
-        // Camera slowly orbits drone
         const time = Date.now() * 0.001;
         camera.position.x = Math.sin(time * 0.5) * 8;
         camera.position.z = Math.cos(time * 0.5) * 8;
         camera.position.y = 3 + Math.sin(time * 0.8) * 1;
         camera.lookAt(droneGroup.position);
       } else {
-        // FLIGHT MODE: Manual controls
+        // Flight Mode
         
-        // 1. Handle Yaw (Turn left/right)
-        if (keys.a) droneYaw += 0.04;
-        if (keys.d) droneYaw -= 0.04;
+        // 1. Yaw (Turning)
+        // Keyboard 'A'/'D' OR Joystick Left/Right
+        if (keys.a || joyX < -0.2) droneYaw += 0.04;
+        if (keys.d || joyX > 0.2) droneYaw -= 0.04;
         
-        // 2. Handle Pitch/Roll (Tilt drone visually based on movement)
+        // 2. Pitch & Roll (Visual Tilt)
         let targetPitch = 0;
         let targetRoll = 0;
         
-        if (keys.w) targetPitch = 0.3;  // Tilt forward
-        if (keys.s) targetPitch = -0.3; // Tilt backward
-        if (keys.a) targetRoll = 0.2;   // Roll left
-        if (keys.d) targetRoll = -0.2;  // Roll right
+        // Forward/Back based on 'W'/'S' OR Joystick Up/Down
+        const moveForward = keys.w || joyY < -0.2;
+        const moveBackward = keys.s || joyY > 0.2;
 
-        // Smoothly interpolate rotation
+        if (moveForward) targetPitch = 0.3;
+        if (moveBackward) targetPitch = -0.3;
+        if (keys.a || joyX < -0.2) targetRoll = 0.2;
+        if (keys.d || joyX > 0.2) targetRoll = -0.2;
+
         droneGroup.rotation.x += (targetPitch - droneGroup.rotation.x) * 0.1;
         droneGroup.rotation.z += (targetRoll - droneGroup.rotation.z) * 0.1;
         droneGroup.rotation.y = droneYaw;
 
-        // 3. Handle Movement (Forward/Backward relative to drone facing)
+        // 3. Movement (Relative to Drone Facing)
         const moveSpeed = 0.15;
         const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, droneYaw, 0));
         
-        if (keys.w) dronePosition.add(forward.multiplyScalar(moveSpeed));
-        if (keys.s) dronePosition.sub(forward.multiplyScalar(moveSpeed));
+        if (moveForward) dronePosition.add(forward.multiplyScalar(moveSpeed));
+        if (moveBackward) dronePosition.sub(forward.multiplyScalar(moveSpeed));
 
-        // 4. Handle Altitude (Up/Down)
+        // 4. Altitude (Keyboard Space/Shift OR Touch Buttons)
         const liftSpeed = 0.1;
         if (keys.space) dronePosition.y += liftSpeed;
         if (keys.shift) dronePosition.y -= liftSpeed;
         
-        // Enforce minimum altitude (keep above ground)
+        // Don't let it go below ground
         if (dronePosition.y < 0) dronePosition.y = 0;
 
-        // Apply position
         droneGroup.position.copy(dronePosition);
 
-        // 5. Third-Person Chase Camera
+        // 5. Chase Camera
         const cameraOffset = new THREE.Vector3(0, 3, 7).applyEuler(new THREE.Euler(0, droneYaw, 0));
         const targetCameraPos = dronePosition.clone().add(cameraOffset);
-        
-        // Smooth camera follow (lerp)
         camera.position.lerp(targetCameraPos, 0.1);
         camera.lookAt(dronePosition);
 
-        // 6. Update HUD
+        // 6. HUD Update
         ui.hudAlt.textContent = dronePosition.y.toFixed(1);
         
-        // Calculate rough speed (0 to 100 based on movement keys)
         let currentSpd = 0;
-        if (keys.w || keys.s) currentSpd = moveSpeed * 100;
+        if (moveForward || moveBackward) currentSpd = moveSpeed * 100;
         ui.hudSpd.textContent = (currentSpd * 2).toFixed(1);
       }
 
       // Spin rotors
       if (rotorSpeed > 0) {
-        rotors.forEach((rotor, index) => {
-          // Alternate spin direction for realism
-          rotor.rotation.y += index % 2 === 0 ? rotorSpeed : -rotorSpeed;
+        rotors.forEach((rotor, i) => {
+          rotor.rotation.y += i % 2 === 0 ? rotorSpeed : -rotorSpeed;
         });
       }
 
       renderer.render(scene, camera);
     }
 
-    // Handle Resize
     function onWindowResize() {
       const width = container.clientWidth;
       const height = container.clientHeight;
@@ -724,9 +755,8 @@
     window.addEventListener('resize', onWindowResize);
     onWindowResize();
 
-    // Kickoff
     animate();
-    window.addEventListener('load', () => setTimeout(startPreFlightSequence, 600));
+    window.addEventListener('load', () => setTimeout(startPreFlightSequence, 500));
 
   </script>
 </body>
