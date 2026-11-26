@@ -575,7 +575,7 @@
 
 
     // ==========================================
-    // 3. PRE-FLIGHT CHECKLIST
+    // 3. PRE-FLIGHT CHECKLIST (VERY FAST NOW)
     // ==========================================
     const ui = {
       btn: document.getElementById('main-btn'),
@@ -615,26 +615,32 @@
     }
 
     function startPreFlightSequence() {
-      setTimeout(() => updateUIState('battery', 'testing', 'Reading telemetry...'), 300);
-      setTimeout(() => { updateUIState('battery', 'success', '64% · 29 min'); checks.battery = true; checkCompletion(); }, 1500);
+      // 1. Battery (Completes at 0.5s)
+      setTimeout(() => updateUIState('battery', 'testing', 'Reading telemetry...'), 100);
+      setTimeout(() => { updateUIState('battery', 'success', '64% · 29 min'); checks.battery = true; checkCompletion(); }, 500);
 
+      // 2. Propellers (Starts at 0.6s, finishes at 1.35s)
       setTimeout(() => {
         updateUIState('propellers', 'testing', 'Testing rotor 1 of 4...');
         rotorSpeed = 0.8;
         let rotorCount = 1;
         const int = setInterval(() => {
           rotorCount++;
-          if (rotorCount <= 4) updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
-          else {
+          if (rotorCount <= 4) {
+            updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
+          } else {
             clearInterval(int);
             updateUIState('propellers', 'success', 'All motors nominal');
-            rotorSpeed = 0; checks.propellers = true; checkCompletion();
+            rotorSpeed = 0; 
+            checks.propellers = true; 
+            checkCompletion();
           }
-        }, 300);
-      }, 1800);
+        }, 150); // <--- Super fast interval (150 milliseconds per rotor)
+      }, 600);
 
-      setTimeout(() => updateUIState('gps', 'testing', 'Acquiring satellites...'), 3500);
-      setTimeout(() => { updateUIState('gps', 'success', '3D Fix · 12 Sats'); checks.gps = true; checkCompletion(); }, 5000);
+      // 3. GPS (Starts at 1.5s, finishes at 2s)
+      setTimeout(() => updateUIState('gps', 'testing', 'Acquiring satellites...'), 1500);
+      setTimeout(() => { updateUIState('gps', 'success', '3D Fix · 12 Sats'); checks.gps = true; checkCompletion(); }, 2000);
     }
 
     // ==========================================
@@ -683,7 +689,6 @@
         // Flight Mode
         
         // 1. Yaw (Turning)
-        // Keyboard 'A'/'D' OR Joystick Left/Right
         if (keys.a || joyX < -0.2) droneYaw += 0.04;
         if (keys.d || joyX > 0.2) droneYaw -= 0.04;
         
@@ -691,7 +696,6 @@
         let targetPitch = 0;
         let targetRoll = 0;
         
-        // Forward/Back based on 'W'/'S' OR Joystick Up/Down
         const moveForward = keys.w || joyY < -0.2;
         const moveBackward = keys.s || joyY > 0.2;
 
@@ -704,19 +708,18 @@
         droneGroup.rotation.z += (targetRoll - droneGroup.rotation.z) * 0.1;
         droneGroup.rotation.y = droneYaw;
 
-        // 3. Movement (Relative to Drone Facing)
+        // 3. Movement
         const moveSpeed = 0.15;
         const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, droneYaw, 0));
         
         if (moveForward) dronePosition.add(forward.multiplyScalar(moveSpeed));
         if (moveBackward) dronePosition.sub(forward.multiplyScalar(moveSpeed));
 
-        // 4. Altitude (Keyboard Space/Shift OR Touch Buttons)
+        // 4. Altitude
         const liftSpeed = 0.1;
         if (keys.space) dronePosition.y += liftSpeed;
         if (keys.shift) dronePosition.y -= liftSpeed;
         
-        // Don't let it go below ground
         if (dronePosition.y < 0) dronePosition.y = 0;
 
         droneGroup.position.copy(dronePosition);
@@ -756,7 +759,7 @@
     onWindowResize();
 
     animate();
-    window.addEventListener('load', () => setTimeout(startPreFlightSequence, 500));
+    window.addEventListener('load', () => setTimeout(startPreFlightSequence, 200));
 
   </script>
 </body>
