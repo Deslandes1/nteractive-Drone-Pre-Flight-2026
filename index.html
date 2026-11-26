@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
-      --bg-color: #e8efe9; /* Matches the screenshot background */
+      --bg-color: #e8efe9;
       --text-main: #1a1a1a;
       --text-muted: #7a8b7e;
       --card-bg: #ffffff;
@@ -36,7 +36,6 @@
       overflow: hidden;
     }
 
-    /* Mobile App Container */
     .app-container {
       width: 100%;
       max-width: 400px;
@@ -49,7 +48,6 @@
       overflow: hidden;
     }
 
-    /* Header */
     .header {
       display: flex;
       align-items: center;
@@ -104,7 +102,6 @@
       background-color: var(--text-main);
     }
 
-    /* 3D Canvas Area */
     .canvas-container {
       flex: 1;
       position: relative;
@@ -120,7 +117,6 @@
       outline: none;
     }
 
-    /* Bottom Sheet / Checklist */
     .checklist-panel {
       background: var(--bg-color);
       border-radius: 24px 24px 0 0;
@@ -202,7 +198,6 @@
       background: #e8f5e9;
     }
 
-    /* Spinners */
     .spinner {
       width: 16px;
       height: 16px;
@@ -216,7 +211,6 @@
       border-top-color: var(--accent-green-dark);
     }
 
-    /* Main Action Button */
     .action-btn {
       background: var(--accent-green);
       color: #ffffff;
@@ -249,18 +243,11 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    /* Rotor Spin Animation state */
-    .rotor-spin {
-      animation: spin 0.1s linear infinite;
-      transform-origin: center;
-    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- Header -->
     <div class="header">
       <div class="back-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -278,15 +265,12 @@
       </div>
     </div>
 
-    <!-- 3D Drone Area -->
     <div class="canvas-container">
       <canvas id="canvas3d"></canvas>
     </div>
 
-    <!-- Checklist Panel -->
     <div class="checklist-panel">
       
-      <!-- Battery Item -->
       <div class="checklist-item" id="item-battery">
         <div class="item-left">
           <div class="icon-box" style="color: #4caf50;">
@@ -305,7 +289,6 @@
         </div>
       </div>
 
-      <!-- Propellers Item -->
       <div class="checklist-item" id="item-propellers">
         <div class="item-left">
           <div class="icon-box" style="color: #9c27b0;">
@@ -324,7 +307,6 @@
         </div>
       </div>
 
-      <!-- GPS Item -->
       <div class="checklist-item" id="item-gps">
         <div class="item-left">
           <div class="icon-box" style="color: #2196f3;">
@@ -347,7 +329,6 @@
         </div>
       </div>
 
-      <!-- Action Button -->
       <button class="action-btn" id="main-btn" disabled>
         <div class="spinner spinner-green"></div>
         Checking...
@@ -355,7 +336,6 @@
     </div>
   </div>
 
-  <!-- Load Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   
   <script>
@@ -366,7 +346,6 @@
     const container = canvas.parentElement;
     
     const scene = new THREE.Scene();
-    // Make 3D scene background transparent to blend with CSS
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     
@@ -374,7 +353,6 @@
     camera.position.set(0, 4, 8);
     camera.lookAt(0, 0, 0);
 
-    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
     
@@ -382,16 +360,13 @@
     dirLight.position.set(5, 10, 5);
     scene.add(dirLight);
 
-    // Create the Drone Group
     const droneGroup = new THREE.Group();
     scene.add(droneGroup);
 
-    // Materials
     const darkMetal = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.8 });
     const yellowAccent = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
     const propMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
 
-    // Drone Body (Central Hub)
     const bodyGeo = new THREE.CylinderGeometry(0.8, 1, 0.4, 8);
     const body = new THREE.Mesh(bodyGeo, darkMetal);
     droneGroup.add(body);
@@ -400,23 +375,19 @@
     topCover.position.y = 0.3;
     droneGroup.add(topCover);
 
-    // Function to create an arm + rotor
     const rotors = [];
     function createArm(angle) {
       const armGroup = new THREE.Group();
       
-      // Arm
       const armGeo = new THREE.BoxGeometry(1.8, 0.1, 0.15);
       const arm = new THREE.Mesh(armGeo, darkMetal);
       arm.position.x = 1;
       armGroup.add(arm);
 
-      // Motor
       const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.25, 8), darkMetal);
       motor.position.set(1.9, 0.1, 0);
       armGroup.add(motor);
 
-      // Propeller
       const propGroup = new THREE.Group();
       propGroup.position.set(1.9, 0.25, 0);
       
@@ -430,18 +401,15 @@
       
       rotors.push(propGroup);
 
-      // Rotate whole arm based on angle
       armGroup.rotation.y = angle;
       droneGroup.add(armGroup);
     }
 
-    // Create 4 arms
     createArm(Math.PI / 4);
     createArm(3 * Math.PI / 4);
     createArm(5 * Math.PI / 4);
     createArm(7 * Math.PI / 4);
 
-    // Landing Gear
     const gearGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8);
     const gear1 = new THREE.Mesh(gearGeo, darkMetal);
     gear1.position.set(0.4, -0.4, 0.4);
@@ -456,7 +424,6 @@
     gear4.position.set(-0.4, -0.4, -0.4);
     droneGroup.add(gear4);
 
-    // Add a glowing landing pad under the drone
     const padGeo = new THREE.RingGeometry(2, 2.2, 32);
     const padMat = new THREE.MeshBasicMaterial({ color: 0xd1dcd3, side: THREE.DoubleSide });
     const pad = new THREE.Mesh(padGeo, padMat);
@@ -464,7 +431,6 @@
     pad.position.y = -0.8;
     scene.add(pad);
 
-    // Resize handler
     function onWindowResize() {
       const width = container.clientWidth;
       const height = container.clientHeight;
@@ -475,15 +441,11 @@
     window.addEventListener('resize', onWindowResize);
     onWindowResize();
 
-    // Animation Loop
     let rotorSpeed = 0;
     function animate() {
       requestAnimationFrame(animate);
-      
-      // Rotate the drone slightly for a dynamic view
       droneGroup.rotation.y += 0.002;
       
-      // Spin rotors if speed > 0
       if (rotorSpeed > 0) {
         rotors.forEach(rotor => {
           rotor.rotation.y += rotorSpeed;
@@ -500,12 +462,6 @@
     // ==========================================
     
     const ui = {
-      batteryText: document.getElementById('battery-text'),
-      batteryStatus: document.getElementById('battery-status'),
-      propText: document.getElementById('propeller-text'),
-      propStatus: document.getElementById('propeller-status'),
-      gpsText: document.getElementById('gps-text'),
-      gpsStatus: document.getElementById('gps-status'),
       btn: document.getElementById('main-btn')
     };
 
@@ -515,9 +471,7 @@
       gps: false
     };
 
-    // Helper to set UI states
     function updateUIState(elementId, state, text) {
-      const item = document.getElementById(`item-${elementId}`);
       const statusDiv = document.getElementById(`${elementId}-status`);
       const textP = document.getElementById(`${elementId}-text`);
       
@@ -536,7 +490,6 @@
       }
     }
 
-    // Check all passed
     function checkCompletion() {
       if (checks.battery && checks.propellers && checks.gps) {
         ui.btn.disabled = false;
@@ -545,26 +498,24 @@
       }
     }
 
-    // Start the sequence when the page loads
     function startPreFlightSequence() {
       
-      // 1. BATTERY SIMULATION (Takes 2 seconds)
+      // 1. BATTERY (Fast: 1.5s)
       setTimeout(() => {
         updateUIState('battery', 'testing', 'Reading telemetry...');
-      }, 500);
+      }, 300);
 
       setTimeout(() => {
         updateUIState('battery', 'success', '64% · 29 min flight');
         checks.battery = true;
         checkCompletion();
-      }, 2500);
+      }, 1800);
 
-      // 2. PROPELLER SIMULATION (Takes 4 seconds, spinning 3D model)
+      // 2. PROPELLERS (Fast: completes in ~1.5s)
       setTimeout(() => {
         updateUIState('propellers', 'testing', 'Testing rotor 1 of 4...');
-        rotorSpeed = 0.5; // Start spinning 3D rotors
+        rotorSpeed = 0.8; // Spin 3D model faster
         
-        // Simulate checking each rotor
         let rotorCount = 1;
         const rotorInterval = setInterval(() => {
           rotorCount++;
@@ -573,40 +524,36 @@
           } else {
             clearInterval(rotorInterval);
             updateUIState('propellers', 'success', 'All motors nominal');
-            rotorSpeed = 0; // Stop spinning
+            rotorSpeed = 0; 
             checks.propellers = true;
             checkCompletion();
           }
-        }, 1000);
-      }, 3000);
+        }, 350); // Very fast interval between rotors (350ms)
+      }, 2200); // Starts shortly after battery finishes
 
-      // 3. GPS SIMULATION (Takes 5 seconds)
+      // 3. GPS (Fast: 2s)
       setTimeout(() => {
         updateUIState('gps', 'testing', 'Acquiring satellites...');
-      }, 6000);
+      }, 4500);
 
       setTimeout(() => {
         updateUIState('gps', 'success', '3D Fix · 12 Sats');
         checks.gps = true;
         checkCompletion();
-      }, 11000);
+      }, 6500);
     }
 
-    // Button Action
     ui.btn.addEventListener('click', () => {
       if (ui.btn.classList.contains('ready')) {
-        // Launch animation sequence
         ui.btn.innerHTML = `🛫 Launching...`;
         ui.btn.style.background = '#4caf50';
         
-        // Animate drone flying up
         let flyUp = setInterval(() => {
           droneGroup.position.y += 0.05;
           if (droneGroup.position.y > 5) {
             clearInterval(flyUp);
             setTimeout(() => {
               alert("🚁 Drone Launched Successfully! (Simulation)");
-              // Reset
               droneGroup.position.y = 0;
               ui.btn.innerHTML = `🚀 Ready to Launch`;
             }, 500);
@@ -615,9 +562,8 @@
       }
     });
 
-    // Kickoff the simulation when page loads
     window.addEventListener('load', () => {
-      setTimeout(startPreFlightSequence, 1000);
+      setTimeout(startPreFlightSequence, 600);
     });
 
   </script>
