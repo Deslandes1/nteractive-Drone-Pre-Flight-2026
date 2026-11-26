@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Condor X8 · Flight Simulator</title>
+  <title>Condor X8 · Drone Flight Simulator</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -14,7 +14,6 @@
       --card-bg: #ffffff;
       --accent-green: #a3d9a5;
       --accent-green-dark: #4caf50;
-      --icon-bg: #f0f5f1;
       --border-radius: 16px;
     }
 
@@ -39,9 +38,9 @@
 
     .app-container {
       width: 100%;
-      max-width: 400px;
+      max-width: 450px;
       height: 100vh;
-      max-height: 850px;
+      max-height: 900px;
       background-color: var(--bg-color);
       position: relative;
       display: flex;
@@ -67,7 +66,6 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      cursor: pointer;
       margin-right: 16px;
     }
 
@@ -106,8 +104,8 @@
       display: block;
     }
 
-    /* Checklist Panel */
-    .checklist-panel {
+    /* Start Panel (Replaces Checklist) */
+    .start-panel {
       background: var(--bg-color);
       border-radius: 24px 24px 0 0;
       padding: 24px 20px 30px;
@@ -117,82 +115,38 @@
       flex-direction: column;
       gap: 12px;
       transition: transform 0.5s ease, opacity 0.5s ease;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
     }
 
-    .checklist-panel.hidden {
+    .start-panel.hidden {
       transform: translateY(100%);
       opacity: 0;
       pointer-events: none;
     }
 
-    .checklist-item {
-      background: var(--card-bg);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    }
-
-    .item-left { display: flex; align-items: center; gap: 14px; }
-
-    .icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: var(--icon-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-    }
-
-    .item-info h3 { font-size: 14px; font-weight: 600; }
-    .item-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-    .item-status {
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 10px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .status-testing { color: #b07d28; background: #fdf5e6; }
-    .status-success { color: #2e7d32; background: #e8f5e9; }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(0,0,0,0.1);
-      border-top-color: var(--text-muted);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    .spinner-green { border-top-color: var(--accent-green-dark); }
-
     .action-btn {
-      background: var(--accent-green);
+      background: var(--accent-green-dark);
       color: #ffffff;
       border: none;
       border-radius: 30px;
-      padding: 18px;
-      font-size: 16px;
+      padding: 20px;
+      font-size: 18px;
       font-weight: 600;
       width: 100%;
-      margin-top: 10px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+      animation: pulse 2s infinite;
     }
 
-    .action-btn.ready { background: var(--accent-green-dark); }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
 
     /* In-Game UI */
     #flightHUD {
@@ -218,6 +172,7 @@
       font-family: monospace;
       font-size: 12px;
       border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(4px);
     }
 
     #restartBtn {
@@ -297,8 +252,6 @@
 
     .touch-btn:active { background: rgba(255,255,255,0.6); }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     /* Desktop Hint */
     .desktop-hint {
       position: absolute;
@@ -324,12 +277,12 @@
     
     <!-- Header -->
     <div class="header" id="mainHeader">
-      <div class="back-btn" id="backBtn">
+      <div class="back-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </div>
       <div class="title-area">
-        <h1 id="headerTitle">Pre-flight check</h1>
-        <p id="headerSubtitle">Condor X8</p>
+        <h1 id="headerTitle">Condor X8</h1>
+        <p id="headerSubtitle">Ready for takeoff</p>
       </div>
     </div>
 
@@ -360,50 +313,10 @@
       </div>
     </div>
 
-    <!-- Checklist -->
-    <div class="checklist-panel" id="checklistPanel">
-      
-      <div class="checklist-item" id="item-battery">
-        <div class="item-left">
-          <div class="icon-box" style="color: #4caf50;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect><line x1="22" y1="11" x2="22" y2="13"></line></svg>
-          </div>
-          <div class="item-info">
-            <h3>Battery</h3>
-            <p id="battery-text">Waiting...</p>
-          </div>
-        </div>
-        <div class="item-status status-testing" id="battery-status"><div class="spinner"></div></div>
-      </div>
-
-      <div class="checklist-item" id="item-propellers">
-        <div class="item-left">
-          <div class="icon-box" style="color: #9c27b0;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
-          </div>
-          <div class="item-info">
-            <h3>Propellers</h3>
-            <p id="propeller-text">Testing...</p>
-          </div>
-        </div>
-        <div class="item-status status-testing" id="propeller-status"><div class="spinner"></div></div>
-      </div>
-
-      <div class="checklist-item" id="item-gps">
-        <div class="item-left">
-          <div class="icon-box" style="color: #2196f3;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line></svg>
-          </div>
-          <div class="item-info">
-            <h3>GPS</h3>
-            <p id="gps-text">Acquiring...</p>
-          </div>
-        </div>
-        <div class="item-status status-testing" id="gps-status"><div class="spinner"></div></div>
-      </div>
-
-      <button class="action-btn" id="main-btn" disabled>
-        <div class="spinner spinner-green"></div> Checking...
+    <!-- Start Panel -->
+    <div class="start-panel" id="startPanel">
+      <button class="action-btn" id="launchBtn">
+        🚀 Start Flight
       </button>
     </div>
   </div>
@@ -486,7 +399,92 @@
     createArm(Math.PI / 4); createArm(3 * Math.PI / 4); createArm(5 * Math.PI / 4); createArm(7 * Math.PI / 4);
 
     // ==========================================
-    // 2. GAME STATE & INPUTS
+    // 2. WEB AUDIO ENGINE (DRONE SOUND)
+    // ==========================================
+    let audioCtx = null;
+    let droneOsc = null;
+    let droneGain = null;
+    let droneFilter = null;
+    let noiseOsc = null;
+    let noiseGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Master output
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.5;
+      masterGain.connect(audioCtx.destination);
+
+      // Low-frequency motor hum (Sawtooth)
+      droneOsc = audioCtx.createOscillator();
+      droneOsc.type = 'sawtooth';
+      droneOsc.frequency.value = 80; // Base motor frequency
+
+      droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.value = 400; // Soften the sawtooth
+
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = 0; // Start silent
+
+      droneOsc.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(masterGain);
+      droneOsc.start();
+
+      // High-frequency air/propeller noise (White noise)
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      noiseOsc = audioCtx.createBufferSource();
+      noiseOsc.buffer = noiseBuffer;
+      noiseOsc.loop = true;
+
+      const noiseFilter = audioCtx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.value = 1200; // Propeller whine
+      noiseFilter.Q.value = 2;
+
+      noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0; // Start silent
+
+      noiseOsc.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterGain);
+      noiseOsc.start();
+    }
+
+    function updateDroneSound(speed, isAscending) {
+      if (!audioCtx) return;
+      
+      const now = audioCtx.currentTime;
+      // Target values based on speed and ascending
+      const targetPitch = 80 + (speed * 60) + (isAscending ? 30 : 0);
+      const targetVolume = 0.1 + (speed * 0.2) + (isAscending ? 0.1 : 0);
+
+      // Smoothly ramp pitch and volume
+      droneOsc.frequency.setTargetAtTime(targetPitch, now, 0.1);
+      droneGain.gain.setTargetAtTime(targetVolume, now, 0.1);
+      
+      // Noise whine
+      noiseGain.gain.setTargetAtTime(targetVolume * 0.4, now, 0.1);
+    }
+
+    function muteDroneSound() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      droneGain.gain.setTargetAtTime(0, now, 0.2);
+      noiseGain.gain.setTargetAtTime(0, now, 0.2);
+    }
+
+    // ==========================================
+    // 3. GAME STATE & INPUTS
     // ==========================================
     let isFlying = false;
     let rotorSpeed = 0;
@@ -573,15 +571,14 @@
     btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); keys.shift = true; });
     btnDown.addEventListener('touchend', (e) => { e.preventDefault(); keys.shift = false; });
 
-
     // ==========================================
-    // 3. PRE-FLIGHT CHECKLIST (VERY FAST NOW)
+    // 4. LAUNCH LOGIC
     // ==========================================
     const ui = {
-      btn: document.getElementById('main-btn'),
+      launchBtn: document.getElementById('launchBtn'),
       headerTitle: document.getElementById('headerTitle'),
       headerSubtitle: document.getElementById('headerSubtitle'),
-      checklistPanel: document.getElementById('checklistPanel'),
+      startPanel: document.getElementById('startPanel'),
       canvasContainer: document.getElementById('canvasContainer'),
       flightHUD: document.getElementById('flightHUD'),
       desktopHint: document.getElementById('desktopHint'),
@@ -590,84 +587,33 @@
       hudSpd: document.getElementById('hudSpd')
     };
 
-    let checks = { battery: false, propellers: false, gps: false };
-
-    function updateUIState(elementId, state, text) {
-      const statusDiv = document.getElementById(`${elementId}-status`);
-      const textP = document.getElementById(`${elementId}-text`);
-      if (text) textP.textContent = text;
-
-      if (state === 'success') {
-        statusDiv.className = 'item-status status-success';
-        statusDiv.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-      } else if (state === 'testing') {
-        statusDiv.className = 'item-status status-testing';
-        statusDiv.innerHTML = `<div class="spinner"></div>`;
+    ui.launchBtn.addEventListener('click', () => {
+      // 1. Initialize Audio (Must be triggered by a user click)
+      initAudio();
+      
+      // 2. Setup UI
+      isFlying = true;
+      ui.headerTitle.textContent = "Flight Mode";
+      ui.headerSubtitle.textContent = "Condor X8";
+      ui.startPanel.classList.add('hidden');
+      ui.flightHUD.classList.add('active');
+      ui.restartBtn.style.display = 'block';
+      
+      if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+        ui.desktopHint.classList.add('active');
       }
-    }
 
-    function checkCompletion() {
-      if (checks.battery && checks.propellers && checks.gps) {
-        ui.btn.disabled = false;
-        ui.btn.className = 'action-btn ready';
-        ui.btn.innerHTML = `🚀 Ready to Launch`;
-      }
-    }
-
-    function startPreFlightSequence() {
-      // 1. Battery (Completes at 0.5s)
-      setTimeout(() => updateUIState('battery', 'testing', 'Reading telemetry...'), 100);
-      setTimeout(() => { updateUIState('battery', 'success', '64% · 29 min'); checks.battery = true; checkCompletion(); }, 500);
-
-      // 2. Propellers (Starts at 0.6s, finishes at 1.35s)
-      setTimeout(() => {
-        updateUIState('propellers', 'testing', 'Testing rotor 1 of 4...');
-        rotorSpeed = 0.8;
-        let rotorCount = 1;
-        const int = setInterval(() => {
-          rotorCount++;
-          if (rotorCount <= 4) {
-            updateUIState('propellers', 'testing', `Testing rotor ${rotorCount} of 4...`);
-          } else {
-            clearInterval(int);
-            updateUIState('propellers', 'success', 'All motors nominal');
-            rotorSpeed = 0; 
-            checks.propellers = true; 
-            checkCompletion();
-          }
-        }, 150); // <--- Super fast interval (150 milliseconds per rotor)
-      }, 600);
-
-      // 3. GPS (Starts at 1.5s, finishes at 2s)
-      setTimeout(() => updateUIState('gps', 'testing', 'Acquiring satellites...'), 1500);
-      setTimeout(() => { updateUIState('gps', 'success', '3D Fix · 12 Sats'); checks.gps = true; checkCompletion(); }, 2000);
-    }
-
-    // ==========================================
-    // 4. LAUNCH & FLIGHT LOGIC
-    // ==========================================
-    ui.btn.addEventListener('click', () => {
-      if (ui.btn.classList.contains('ready')) {
-        isFlying = true;
-        
-        ui.headerTitle.textContent = "Flight Mode";
-        ui.headerSubtitle.textContent = "Condor X8";
-        ui.checklistPanel.classList.add('hidden');
-        ui.flightHUD.classList.add('active');
-        ui.restartBtn.style.display = 'block';
-        
-        // Show correct hint
-        if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
-          ui.desktopHint.classList.add('active');
-        }
-
-        ui.canvasContainer.classList.add('flying');
-        scene.background = new THREE.Color(0x8eb5d1);
-        environmentGroup.visible = true;
-        
-        rotorSpeed = 1.5;
-        setTimeout(() => { dronePosition.y += 2; }, 500);
-      }
+      // 3. Setup Environment
+      ui.canvasContainer.classList.add('flying');
+      scene.background = new THREE.Color(0x8eb5d1);
+      environmentGroup.visible = true;
+      
+      // 4. Start Engines
+      rotorSpeed = 1.5;
+      setTimeout(() => { dronePosition.y += 2; }, 500);
+      
+      // Let the sound engine know we are starting
+      updateDroneSound(0.5, true);
     });
 
     // ==========================================
@@ -677,7 +623,7 @@
       requestAnimationFrame(animate);
 
       if (!isFlying) {
-        // Menu Mode
+        // Menu Mode: Cinematic slow orbit
         droneGroup.rotation.y += 0.003;
         droneGroup.position.copy(dronePosition);
         const time = Date.now() * 0.001;
@@ -717,8 +663,10 @@
 
         // 4. Altitude
         const liftSpeed = 0.1;
-        if (keys.space) dronePosition.y += liftSpeed;
-        if (keys.shift) dronePosition.y -= liftSpeed;
+        let isAscending = false;
+        
+        if (keys.space) { dronePosition.y += liftSpeed; isAscending = true; }
+        if (keys.shift) { dronePosition.y -= liftSpeed; isAscending = false; }
         
         if (dronePosition.y < 0) dronePosition.y = 0;
 
@@ -730,12 +678,15 @@
         camera.position.lerp(targetCameraPos, 0.1);
         camera.lookAt(dronePosition);
 
-        // 6. HUD Update
+        // 6. HUD & Sound Update
         ui.hudAlt.textContent = dronePosition.y.toFixed(1);
         
         let currentSpd = 0;
-        if (moveForward || moveBackward) currentSpd = moveSpeed * 100;
-        ui.hudSpd.textContent = (currentSpd * 2).toFixed(1);
+        if (moveForward || moveBackward) currentSpd = moveSpeed;
+        ui.hudSpd.textContent = (currentSpd * 200).toFixed(1);
+        
+        // Feed flight data to the audio engine
+        updateDroneSound(currentSpd * 5, isAscending);
       }
 
       // Spin rotors
@@ -759,7 +710,6 @@
     onWindowResize();
 
     animate();
-    window.addEventListener('load', () => setTimeout(startPreFlightSequence, 200));
 
   </script>
 </body>
