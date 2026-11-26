@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Condor X8 · Drone Flight Simulator</title>
+  <title>Condor X8 · Combat Drone</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -38,7 +38,7 @@
 
     .app-container {
       width: 100%;
-      max-width: 450px;
+      max-width: 500px;
       height: 100vh;
       max-height: 900px;
       background-color: var(--bg-color);
@@ -52,7 +52,7 @@
     .header {
       display: flex;
       align-items: center;
-      padding: 24px 20px;
+      padding: 20px;
       z-index: 10;
       transition: opacity 0.5s ease;
     }
@@ -104,7 +104,7 @@
       display: block;
     }
 
-    /* Start Panel (Replaces Checklist) */
+    /* Start Panel */
     .start-panel {
       background: var(--bg-color);
       border-radius: 24px 24px 0 0;
@@ -148,8 +148,8 @@
       100% { transform: scale(1); }
     }
 
-    /* In-Game UI */
-    #flightHUD {
+    /* Game UI */
+    #gameUI {
       position: absolute;
       top: 20px;
       left: 20px;
@@ -162,7 +162,7 @@
       z-index: 5;
     }
 
-    #flightHUD.active { opacity: 1; }
+    #gameUI.active { opacity: 1; }
 
     .hud-panel {
       background: rgba(0,0,0,0.6);
@@ -175,25 +175,32 @@
       backdrop-filter: blur(4px);
     }
 
-    #restartBtn {
-      position: absolute;
-      top: 20px;
-      right: 50%;
-      transform: translateX(50%);
-      background: #ff4444;
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 8px 16px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      display: none;
-      z-index: 15;
-      box-shadow: 0 4px 10px rgba(255,68,68,0.4);
+    .health-hearts {
+      color: #ff4444;
+      font-size: 16px;
+      letter-spacing: 2px;
     }
 
-    /* Touch Controls */
+    /* Game Over Screen */
+    #gameOverScreen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: #fff;
+    }
+    #gameOverScreen h1 { color: #ff4444; font-size: 32px; margin-bottom: 10px; }
+    #gameOverScreen p { margin-bottom: 20px; font-size: 16px; }
+    #gameOverScreen button {
+      background: #ff4444; color: #fff; border: none; padding: 15px 30px;
+      border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer;
+    }
+
+    /* Controls */
     #touchControls {
       position: absolute;
       bottom: 20px;
@@ -207,8 +214,8 @@
     }
 
     .joystick-base {
-      width: 120px;
-      height: 120px;
+      width: 110px;
+      height: 110px;
       background: rgba(255,255,255,0.2);
       border: 2px solid rgba(255,255,255,0.5);
       border-radius: 50%;
@@ -217,8 +224,8 @@
     }
 
     .joystick-stick {
-      width: 50px;
-      height: 50px;
+      width: 45px;
+      height: 45px;
       background: rgba(255,255,255,0.8);
       border-radius: 50%;
       position: absolute;
@@ -229,79 +236,95 @@
     }
 
     .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       pointer-events: auto;
     }
 
     .touch-btn {
-      width: 60px;
-      height: 60px;
+      width: 55px;
+      height: 55px;
       background: rgba(255,255,255,0.3);
       border: 2px solid rgba(255,255,255,0.6);
       border-radius: 50%;
       color: #fff;
-      font-size: 24px;
+      font-size: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-weight: bold;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
-
     .touch-btn:active { background: rgba(255,255,255,0.6); }
+    .btn-attack { background: rgba(255, 68, 68, 0.5); border-color: #ff4444; }
+    .btn-bomb { background: rgba(255, 170, 0, 0.5); border-color: #ffaa00; }
 
-    /* Desktop Hint */
-    .desktop-hint {
+    /* Crosshair for desktop */
+    #crosshair {
       position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 13px;
-      white-space: nowrap;
+      top: 50%; left: 50%;
+      width: 40px; height: 40px;
+      transform: translate(-50%, -50%);
+      border: 2px solid rgba(255, 68, 68, 0.8);
+      border-radius: 50%;
+      display: none;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.5s;
+      z-index: 5;
     }
-    .desktop-hint.active { opacity: 1; }
+    #crosshair::before, #crosshair::after {
+      content: ''; position: absolute; background: rgba(255, 68, 68, 0.8);
+    }
+    #crosshair::before { top: 50%; left: -10px; width: 60px; height: 2px; transform: translateY(-50%); }
+    #crosshair::after { top: -10px; left: 50%; width: 2px; height: 60px; transform: translateX(-50%); }
+
+    @media (min-width: 768px) {
+      #touchControls { display: none !important; }
+      #crosshair.active { display: block; }
+    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     
-    <!-- Header -->
     <div class="header" id="mainHeader">
       <div class="back-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </div>
       <div class="title-area">
         <h1 id="headerTitle">Condor X8</h1>
-        <p id="headerSubtitle">Ready for takeoff</p>
+        <p id="headerSubtitle">Combat Simulation</p>
       </div>
     </div>
 
-    <!-- 3D View -->
     <div class="canvas-container" id="canvasContainer">
       <canvas id="canvas3d"></canvas>
+      <div id="crosshair"></div>
       
-      <div id="flightHUD">
-        <div class="hud-panel">ALT: <span id="hudAlt">0.0</span>m</div>
-        <div class="hud-panel">SPD: <span id="hudSpd">0.0</span>km/h</div>
+      <div id="gameUI">
+        <div class="hud-panel">
+          ALT: <span id="hudAlt">0.0</span>m<br>
+          SPD: <span id="hudSpd">0.0</span>
+        </div>
+        <div class="hud-panel" style="text-align: right;">
+          ENEMIES: <span id="hudEnemies">0</span><br>
+          <span class="health-hearts" id="hudHealth">❤️❤️</span>
+        </div>
       </div>
 
-      <button id="restartBtn" onclick="window.location.reload()">RESTART</button>
-
-      <div class="desktop-hint" id="desktopHint">
-        <b>W A S D</b> to fly · <b>Space</b> Up · <b>Shift</b> Down
+      <div id="gameOverScreen">
+        <h1>DRONE DOWN</h1>
+        <p>You were shot out of the sky.</p>
+        <button onclick="window.location.reload()">TRY AGAIN</button>
       </div>
 
-      <!-- Touch Controls (Only shows on mobile) -->
+      <!-- Desktop Hints -->
+      <div class="desktop-hint" id="desktopHint" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; opacity:0; transition:opacity 0.5s; pointer-events:none; z-index:10;">
+        <b>W A S D</b> Fly · <b>Space/Shift</b> Altitude<br>
+        <b>Left Click</b> Shoot · <b>Right Click</b> Bomb
+      </div>
+
       <div id="touchControls">
         <div class="joystick-base" id="joystickBase">
           <div class="joystick-stick" id="joystickStick"></div>
@@ -309,14 +332,15 @@
         <div class="action-buttons">
           <div class="touch-btn" id="btnUp">▲</div>
           <div class="touch-btn" id="btnDown">▼</div>
+          <div class="touch-btn btn-attack" id="btnFire">🔫</div>
+          <div class="touch-btn btn-bomb" id="btnBomb">💣</div>
         </div>
       </div>
     </div>
 
-    <!-- Start Panel -->
     <div class="start-panel" id="startPanel">
       <button class="action-btn" id="launchBtn">
-        🚀 Start Flight
+        🚀 Start Combat Flight
       </button>
     </div>
   </div>
@@ -331,47 +355,50 @@
     
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xe8efe9);
+    scene.fog = new THREE.Fog(0x8eb5d1, 20, 100);
     
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
     
-    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 200);
     camera.position.set(0, 4, 8);
 
     // Lights
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
     dirLight.position.set(10, 20, 10);
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    // Environment (Hidden until flight)
+    // ==========================================
+    // 2. ENVIRONMENT
+    // ==========================================
     const environmentGroup = new THREE.Group();
     environmentGroup.visible = false;
     scene.add(environmentGroup);
 
-    // Ground Grid
+    // Ground
+    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x3a5a3a, roughness: 1 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1;
+    ground.receiveShadow = true;
+    environmentGroup.add(ground);
+
+    // Grid for visual reference
     const gridHelper = new THREE.GridHelper(100, 50, 0x4caf50, 0xaaaaaa);
-    gridHelper.position.y = -0.8;
+    gridHelper.position.y = -0.99;
     environmentGroup.add(gridHelper);
 
-    // Obstacles
-    const blockMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.8 });
-    for(let i=0; i<25; i++) {
-      const h = Math.random() * 6 + 1;
-      const block = new THREE.Mesh(new THREE.BoxGeometry(2, h, 2), blockMat);
-      block.position.set((Math.random() - 0.5) * 40, h/2 - 0.8, (Math.random() - 0.5) * 40);
-      block.castShadow = true;
-      block.receiveShadow = true;
-      environmentGroup.add(block);
-    }
-
-    // Drone Model
+    // ==========================================
+    // 3. DRONE MODEL & WEAPONS
+    // ==========================================
     const droneGroup = new THREE.Group();
     scene.add(droneGroup);
 
-    const darkMetal = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.8 });
+    const darkMetal = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 });
     const yellowAccent = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
     const propMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, transparent: true, opacity: 0.8 });
 
@@ -381,6 +408,7 @@
     topCover.position.y = 0.3;
     droneGroup.add(topCover);
 
+    // Rotors
     const rotors = [];
     function createArm(angle) {
       const armGroup = new THREE.Group();
@@ -398,102 +426,144 @@
     }
     createArm(Math.PI / 4); createArm(3 * Math.PI / 4); createArm(5 * Math.PI / 4); createArm(7 * Math.PI / 4);
 
-    // ==========================================
-    // 2. WEB AUDIO ENGINE (DRONE SOUND)
-    // ==========================================
-    let audioCtx = null;
-    let droneOsc = null;
-    let droneGain = null;
-    let droneFilter = null;
-    let noiseOsc = null;
-    let noiseGain = null;
-
-    function initAudio() {
-      if (audioCtx) return;
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
-      // Master output
-      const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.5;
-      masterGain.connect(audioCtx.destination);
-
-      // Low-frequency motor hum (Sawtooth)
-      droneOsc = audioCtx.createOscillator();
-      droneOsc.type = 'sawtooth';
-      droneOsc.frequency.value = 80; // Base motor frequency
-
-      droneFilter = audioCtx.createBiquadFilter();
-      droneFilter.type = 'lowpass';
-      droneFilter.frequency.value = 400; // Soften the sawtooth
-
-      droneGain = audioCtx.createGain();
-      droneGain.gain.value = 0; // Start silent
-
-      droneOsc.connect(droneFilter);
-      droneFilter.connect(droneGain);
-      droneGain.connect(masterGain);
-      droneOsc.start();
-
-      // High-frequency air/propeller noise (White noise)
-      const bufferSize = audioCtx.sampleRate * 2;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-
-      noiseOsc = audioCtx.createBufferSource();
-      noiseOsc.buffer = noiseBuffer;
-      noiseOsc.loop = true;
-
-      const noiseFilter = audioCtx.createBiquadFilter();
-      noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.value = 1200; // Propeller whine
-      noiseFilter.Q.value = 2;
-
-      noiseGain = audioCtx.createGain();
-      noiseGain.gain.value = 0; // Start silent
-
-      noiseOsc.connect(noiseFilter);
-      noiseFilter.connect(noiseGain);
-      noiseGain.connect(masterGain);
-      noiseOsc.start();
-    }
-
-    function updateDroneSound(speed, isAscending) {
-      if (!audioCtx) return;
-      
-      const now = audioCtx.currentTime;
-      // Target values based on speed and ascending
-      const targetPitch = 80 + (speed * 60) + (isAscending ? 30 : 0);
-      const targetVolume = 0.1 + (speed * 0.2) + (isAscending ? 0.1 : 0);
-
-      // Smoothly ramp pitch and volume
-      droneOsc.frequency.setTargetAtTime(targetPitch, now, 0.1);
-      droneGain.gain.setTargetAtTime(targetVolume, now, 0.1);
-      
-      // Noise whine
-      noiseGain.gain.setTargetAtTime(targetVolume * 0.4, now, 0.1);
-    }
-
-    function muteDroneSound() {
-      if (!audioCtx) return;
-      const now = audioCtx.currentTime;
-      droneGain.gain.setTargetAtTime(0, now, 0.2);
-      noiseGain.gain.setTargetAtTime(0, now, 0.2);
-    }
+    // Gun Mounts on drone
+    const gunL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.6), darkMetal);
+    gunL.position.set(-0.8, -0.1, 0);
+    droneGroup.add(gunL);
+    const gunR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.6), darkMetal);
+    gunR.position.set(0.8, -0.1, 0);
+    droneGroup.add(gunR);
 
     // ==========================================
-    // 3. GAME STATE & INPUTS
+    // 4. GAME STATE & AUDIO
     // ==========================================
     let isFlying = false;
     let rotorSpeed = 0;
     let droneYaw = 0;
-    const dronePosition = new THREE.Vector3(0, 0, 0);
+    let droneHealth = 2;
+    let enemiesKilled = 0;
+    const dronePosition = new THREE.Vector3(0, 5, 0);
     
-    // Keyboard Inputs
-    const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+    // Audio
+    let audioCtx = null;
+    let droneOsc, droneGain, noiseGain;
+    
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.4;
+      masterGain.connect(audioCtx.destination);
 
+      droneOsc = audioCtx.createOscillator();
+      droneOsc.type = 'sawtooth';
+      droneOsc.frequency.value = 80;
+      const droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.value = 400;
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = 0;
+      droneOsc.connect(droneFilter); droneFilter.connect(droneGain); droneGain.connect(masterGain);
+      droneOsc.start();
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+      
+      const noiseOsc = audioCtx.createBufferSource();
+      noiseOsc.buffer = noiseBuffer; noiseOsc.loop = true;
+      const noiseFilter = audioCtx.createBiquadFilter();
+      noiseFilter.type = 'bandpass'; noiseFilter.frequency.value = 1200;
+      noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0;
+      noiseOsc.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(masterGain);
+      noiseOsc.start();
+    }
+
+    function playShootSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+      g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playExplosionSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.5);
+      g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // ==========================================
+    // 5. GAME ENTITIES (Enemies, Bullets, Bombs, Explosions)
+    // ==========================================
+    const enemies = [];
+    const projectiles = []; // Enemy bullets
+    const droneBullets = [];
+    const bombs = [];
+    const explosions = [];
+
+    function spawnEnemy() {
+      const x = (Math.random() - 0.5) * 60;
+      const z = (Math.random() - 0.5) * 60;
+      
+      // Don't spawn too close to center
+      if (Math.abs(x) < 10 && Math.abs(z) < 10) return;
+
+      const enemyGroup = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.2, 1, 8), new THREE.MeshStandardMaterial({ color: 0xaa3333 }));
+      base.position.y = -0.5;
+      enemyGroup.add(base);
+      const gun = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 1.5), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+      gun.position.y = 0.2;
+      gun.position.z = 0.5;
+      enemyGroup.add(gun);
+      
+      enemyGroup.position.set(x, 0, z);
+      enemyGroup.userData = { 
+        hp: 2, 
+        shootTimer: Math.random() * 2,
+        isDead: false
+      };
+      
+      scene.add(enemyGroup);
+      enemies.push(enemyGroup);
+      document.getElementById('hudEnemies').textContent = enemies.length;
+    }
+
+    function createExplosion(pos, size = 1) {
+      playExplosionSound();
+      
+      // Visual explosion
+      const count = 15;
+      for(let i=0; i<count; i++) {
+        const geo = new THREE.SphereGeometry(0.2 * size, 4, 4);
+        const mat = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0xffaa00 : 0xff4400 });
+        const particle = new THREE.Mesh(geo, mat);
+        particle.position.copy(pos);
+        
+        const vel = new THREE.Vector3((Math.random() - 0.5) * 10, Math.random() * 10, (Math.random() - 0.5) * 10);
+        
+        scene.add(particle);
+        explosions.push({ mesh: particle, vel: vel, life: 0.8, maxLife: 0.8 });
+      }
+    }
+
+    // Inputs
+    const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+    
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
       if (k === 'w' || k === 'arrowup') keys.w = true;
@@ -502,6 +572,8 @@
       if (k === 'd' || k === 'arrowright') keys.d = true;
       if (e.code === 'Space') { keys.space = true; e.preventDefault(); }
       if (e.key === 'Shift') keys.shift = true;
+      if (k === 'f') shootGun();
+      if (k === 'b') dropBomb();
     });
 
     window.addEventListener('keyup', (e) => {
@@ -514,50 +586,49 @@
       if (e.key === 'Shift') keys.shift = false;
     });
 
-    // Touch Inputs (Joystick)
-    let touchActive = false;
-    let touchStartX = 0, touchStartY = 0;
+    // Mouse inputs for desktop
+    window.addEventListener('mousedown', (e) => {
+      if (!isFlying) return;
+      if (e.button === 0) shootGun();
+      if (e.button === 2) dropBomb();
+    });
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Mobile Controls
     let joyX = 0, joyY = 0;
-    
+    let touchActive = false, touchStartX = 0, touchStartY = 0;
     const joystickBase = document.getElementById('joystickBase');
     const joystickStick = document.getElementById('joystickStick');
     const btnUp = document.getElementById('btnUp');
     const btnDown = document.getElementById('btnDown');
+    const btnFire = document.getElementById('btnFire');
+    const btnBomb = document.getElementById('btnBomb');
 
-    // Detect mobile
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       document.getElementById('touchControls').style.display = 'flex';
     }
 
     function handleJoystickStart(e) {
-      e.preventDefault();
-      touchActive = true;
+      e.preventDefault(); touchActive = true;
       const rect = joystickBase.getBoundingClientRect();
       touchStartX = rect.left + rect.width / 2;
       touchStartY = rect.top + rect.height / 2;
     }
-
     function handleJoystickMove(e) {
       if (!touchActive) return;
       e.preventDefault();
       const touch = e.touches[0];
       const dx = touch.clientX - touchStartX;
       const dy = touch.clientY - touchStartY;
-      
       const maxDist = 40;
       const dist = Math.min(Math.hypot(dx, dy), maxDist);
       const angle = Math.atan2(dy, dx);
-      
       joyX = Math.cos(angle) * (dist / maxDist);
       joyY = Math.sin(angle) * (dist / maxDist);
-      
       joystickStick.style.transform = `translate(calc(-50% + ${joyX * maxDist}px), calc(-50% + ${joyY * maxDist}px))`;
     }
-
     function handleJoystickEnd(e) {
-      e.preventDefault();
-      touchActive = false;
-      joyX = 0; joyY = 0;
+      e.preventDefault(); touchActive = false; joyX = 0; joyY = 0;
       joystickStick.style.transform = `translate(-50%, -50%)`;
     }
 
@@ -565,128 +636,300 @@
     joystickBase.addEventListener('touchmove', handleJoystickMove, { passive: false });
     joystickBase.addEventListener('touchend', handleJoystickEnd, { passive: false });
 
-    // Up/Down Buttons
     btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); keys.space = true; });
     btnUp.addEventListener('touchend', (e) => { e.preventDefault(); keys.space = false; });
     btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); keys.shift = true; });
     btnDown.addEventListener('touchend', (e) => { e.preventDefault(); keys.shift = false; });
+    btnFire.addEventListener('touchstart', (e) => { e.preventDefault(); shootGun(); });
+    btnBomb.addEventListener('touchstart', (e) => { e.preventDefault(); dropBomb(); });
 
     // ==========================================
-    // 4. LAUNCH LOGIC
+    // 6. WEAPONS LOGIC
+    // ==========================================
+    let shootCooldown = 0;
+    let bombCooldown = 0;
+
+    function shootGun() {
+      if (!isFlying || shootCooldown > 0) return;
+      shootCooldown = 0.15; // 150ms fire rate
+      playShootSound();
+      
+      // Fire from two guns
+      [-0.8, 0.8].forEach(offsetX => {
+        const geo = new THREE.CylinderGeometry(0.05, 0.05, 1, 4);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const bullet = new THREE.Mesh(geo, mat);
+        
+        const startPos = dronePosition.clone();
+        startPos.x += offsetX * Math.cos(droneYaw);
+        startPos.z -= offsetX * Math.sin(droneYaw);
+        bullet.position.copy(startPos);
+        
+        const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, droneYaw, 0));
+        bullet.userData = { vel: forward.multiplyScalar(80), life: 2 };
+        
+        scene.add(bullet);
+        droneBullets.push(bullet);
+      });
+    }
+
+    function dropBomb() {
+      if (!isFlying || bombCooldown > 0) return;
+      bombCooldown = 1.0; // 1 second bomb cooldown
+      
+      const geo = new THREE.SphereGeometry(0.3, 8, 8);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+      const bomb = new THREE.Mesh(geo, mat);
+      bomb.position.copy(dronePosition);
+      
+      // Small forward momentum based on drone speed
+      const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, droneYaw, 0));
+      bomb.userData = { vel: forward.multiplyScalar(10), life: 5 };
+      
+      scene.add(bomb);
+      bombs.push(bomb);
+    }
+
+    // ==========================================
+    // 7. LAUNCH & MAIN LOOP
     // ==========================================
     const ui = {
       launchBtn: document.getElementById('launchBtn'),
-      headerTitle: document.getElementById('headerTitle'),
-      headerSubtitle: document.getElementById('headerSubtitle'),
       startPanel: document.getElementById('startPanel'),
-      canvasContainer: document.getElementById('canvasContainer'),
-      flightHUD: document.getElementById('flightHUD'),
-      desktopHint: document.getElementById('desktopHint'),
-      restartBtn: document.getElementById('restartBtn'),
+      gameUI: document.getElementById('gameUI'),
       hudAlt: document.getElementById('hudAlt'),
-      hudSpd: document.getElementById('hudSpd')
+      hudSpd: document.getElementById('hudSpd'),
+      hudEnemies: document.getElementById('hudEnemies'),
+      hudHealth: document.getElementById('hudHealth'),
+      crosshair: document.getElementById('crosshair'),
+      desktopHint: document.getElementById('desktopHint')
     };
 
     ui.launchBtn.addEventListener('click', () => {
-      // 1. Initialize Audio (Must be triggered by a user click)
       initAudio();
-      
-      // 2. Setup UI
       isFlying = true;
-      ui.headerTitle.textContent = "Flight Mode";
-      ui.headerSubtitle.textContent = "Condor X8";
       ui.startPanel.classList.add('hidden');
-      ui.flightHUD.classList.add('active');
-      ui.restartBtn.style.display = 'block';
+      ui.gameUI.classList.add('active');
+      ui.crosshair.classList.add('active');
+      ui.desktopHint.style.opacity = '1';
       
-      if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
-        ui.desktopHint.classList.add('active');
-      }
-
-      // 3. Setup Environment
       ui.canvasContainer.classList.add('flying');
       scene.background = new THREE.Color(0x8eb5d1);
       environmentGroup.visible = true;
       
-      // 4. Start Engines
       rotorSpeed = 1.5;
-      setTimeout(() => { dronePosition.y += 2; }, 500);
+      dronePosition.set(0, 10, 0);
       
-      // Let the sound engine know we are starting
-      updateDroneSound(0.5, true);
+      // Spawn initial enemies
+      for(let i=0; i<5; i++) spawnEnemy();
     });
 
-    // ==========================================
-    // 5. ANIMATION LOOP
-    // ==========================================
+    function takeDamage() {
+      if (!isFlying) return;
+      droneHealth--;
+      ui.hudHealth.textContent = '❤️'.repeat(droneHealth);
+      
+      // Screen flash
+      document.body.style.backgroundColor = '#ff4444';
+      setTimeout(() => document.body.style.backgroundColor = '', 100);
+
+      if (droneHealth <= 0) {
+        isFlying = false;
+        document.getElementById('gameOverScreen').style.display = 'flex';
+        // Crash animation
+        const crashInterval = setInterval(() => {
+          dronePosition.y -= 0.5;
+          droneGroup.rotation.z += 0.1;
+          droneGroup.rotation.x += 0.05;
+          if (dronePosition.y < -2) clearInterval(crashInterval);
+        }, 20);
+        createExplosion(dronePosition, 3);
+      }
+    }
+
     function animate() {
       requestAnimationFrame(animate);
+      const dt = Math.min(0.05, 0.016); // Roughly 60fps delta time
+
+      // Cooldowns
+      if (shootCooldown > 0) shootCooldown -= dt;
+      if (bombCooldown > 0) bombCooldown -= dt;
 
       if (!isFlying) {
-        // Menu Mode: Cinematic slow orbit
-        droneGroup.rotation.y += 0.003;
-        droneGroup.position.copy(dronePosition);
+        // Menu Mode
+        droneGroup.rotation.y += 0.005;
         const time = Date.now() * 0.001;
         camera.position.x = Math.sin(time * 0.5) * 8;
         camera.position.z = Math.cos(time * 0.5) * 8;
         camera.position.y = 3 + Math.sin(time * 0.8) * 1;
         camera.lookAt(droneGroup.position);
       } else {
-        // Flight Mode
+        // --- Flight Mode ---
         
-        // 1. Yaw (Turning)
+        // Movement
         if (keys.a || joyX < -0.2) droneYaw += 0.04;
         if (keys.d || joyX > 0.2) droneYaw -= 0.04;
-        
-        // 2. Pitch & Roll (Visual Tilt)
-        let targetPitch = 0;
-        let targetRoll = 0;
         
         const moveForward = keys.w || joyY < -0.2;
         const moveBackward = keys.s || joyY > 0.2;
 
-        if (moveForward) targetPitch = 0.3;
-        if (moveBackward) targetPitch = -0.3;
-        if (keys.a || joyX < -0.2) targetRoll = 0.2;
-        if (keys.d || joyX > 0.2) targetRoll = -0.2;
+        let targetPitch = moveForward ? 0.3 : (moveBackward ? -0.3 : 0);
+        let targetRoll = (keys.a || joyX < -0.2) ? 0.2 : ((keys.d || joyX > 0.2) ? -0.2 : 0);
 
         droneGroup.rotation.x += (targetPitch - droneGroup.rotation.x) * 0.1;
         droneGroup.rotation.z += (targetRoll - droneGroup.rotation.z) * 0.1;
         droneGroup.rotation.y = droneYaw;
 
-        // 3. Movement
-        const moveSpeed = 0.15;
+        const moveSpeed = 0.25;
         const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, droneYaw, 0));
         
-        if (moveForward) dronePosition.add(forward.multiplyScalar(moveSpeed));
-        if (moveBackward) dronePosition.sub(forward.multiplyScalar(moveSpeed));
+        if (moveForward) dronePosition.add(forward.clone().multiplyScalar(moveSpeed));
+        if (moveBackward) dronePosition.sub(forward.clone().multiplyScalar(moveSpeed));
 
-        // 4. Altitude
-        const liftSpeed = 0.1;
-        let isAscending = false;
-        
-        if (keys.space) { dronePosition.y += liftSpeed; isAscending = true; }
-        if (keys.shift) { dronePosition.y -= liftSpeed; isAscending = false; }
-        
-        if (dronePosition.y < 0) dronePosition.y = 0;
+        // Altitude
+        if (keys.space) dronePosition.y += 0.15;
+        if (keys.shift) dronePosition.y -= 0.15;
+        if (dronePosition.y < 1) dronePosition.y = 1; // Don't crash into ground easily
 
         droneGroup.position.copy(dronePosition);
 
-        // 5. Chase Camera
-        const cameraOffset = new THREE.Vector3(0, 3, 7).applyEuler(new THREE.Euler(0, droneYaw, 0));
-        const targetCameraPos = dronePosition.clone().add(cameraOffset);
-        camera.position.lerp(targetCameraPos, 0.1);
-        camera.lookAt(dronePosition);
+        // Chase Camera
+        const cameraOffset = new THREE.Vector3(0, 3, 8).applyEuler(new THREE.Euler(0, droneYaw, 0));
+        camera.position.lerp(dronePosition.clone().add(cameraOffset), 0.1);
+        camera.lookAt(dronePosition.clone().add(forward.clone().multiplyScalar(10)));
 
-        // 6. HUD & Sound Update
+        // Update HUD
         ui.hudAlt.textContent = dronePosition.y.toFixed(1);
+        let spd = (moveForward || moveBackward) ? 45 : 0;
+        ui.hudSpd.textContent = spd.toFixed(0);
+
+        // --- Entity Updates ---
         
-        let currentSpd = 0;
-        if (moveForward || moveBackward) currentSpd = moveSpeed;
-        ui.hudSpd.textContent = (currentSpd * 200).toFixed(1);
-        
-        // Feed flight data to the audio engine
-        updateDroneSound(currentSpd * 5, isAscending);
+        // 1. Drone Bullets
+        for (let i = droneBullets.length - 1; i >= 0; i--) {
+          const b = droneBullets[i];
+          b.position.add(b.userData.vel.clone().multiplyScalar(dt));
+          b.userData.life -= dt;
+          
+          // Check hits against enemies
+          let hit = false;
+          for (let e of enemies) {
+            if (e.userData.isDead) continue;
+            if (b.position.distanceTo(e.position) < 1.5) {
+              e.userData.hp--;
+              hit = true;
+              createExplosion(b.position, 0.5);
+              if (e.userData.hp <= 0) {
+                e.userData.isDead = true;
+                scene.remove(e);
+                createExplosion(e.position, 2);
+                enemiesKilled++;
+              }
+              break;
+            }
+          }
+          
+          if (hit || b.userData.life <= 0) {
+            scene.remove(b);
+            droneBullets.splice(i, 1);
+          }
+        }
+
+        // Filter dead enemies
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          if (enemies[i].userData.isDead) {
+            enemies.splice(i, 1);
+            ui.hudEnemies.textContent = enemies.length;
+            // Spawn a new one to keep the game going
+            setTimeout(spawnEnemy, 2000);
+          }
+        }
+
+        // 2. Bombs
+        for (let i = bombs.length - 1; i >= 0; i--) {
+          const b = bombs[i];
+          // Gravity
+          b.userData.vel.y -= 20 * dt;
+          b.position.add(b.userData.vel.clone().multiplyScalar(dt));
+          
+          if (b.position.y <= -0.8) {
+            // Impact!
+            createExplosion(b.position, 2.5);
+            scene.remove(b);
+            bombs.splice(i, 1);
+            
+            // Damage enemies in radius
+            for (let e of enemies) {
+              if (e.userData.isDead) continue;
+              if (b.position.distanceTo(e.position) < 8) {
+                e.userData.hp = 0; // Instant kill
+              }
+            }
+          }
+        }
+
+        // 3. Enemies AI
+        for (let e of enemies) {
+          if (e.userData.isDead) continue;
+          
+          // Make turret look at drone
+          e.lookAt(dronePosition.x, e.position.y, dronePosition.z);
+          
+          // Shoot at drone
+          e.userData.shootTimer -= dt;
+          if (e.userData.shootTimer <= 0 && dronePosition.distanceTo(e.position) < 40) {
+            e.userData.shootTimer = 1.5 + Math.random(); // 1.5s to 2.5s fire rate
+            
+            // Create projectile
+            const projGeo = new THREE.SphereGeometry(0.2, 4, 4);
+            const projMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const proj = new THREE.Mesh(projGeo, projMat);
+            proj.position.copy(e.position).add(new THREE.Vector3(0, 0.5, 0));
+            
+            // Aim at drone with slight lead
+            const dir = dronePosition.clone().sub(proj.position).normalize();
+            proj.userData = { vel: dir.multiplyScalar(20), life: 4 };
+            
+            scene.add(proj);
+            projectiles.push(proj);
+          }
+        }
+
+        // 4. Enemy Projectiles
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+          const p = projectiles[i];
+          p.position.add(p.userData.vel.clone().multiplyScalar(dt));
+          p.userData.life -= dt;
+          
+          // Check hit on drone
+          if (p.position.distanceTo(dronePosition) < 1.5) {
+            takeDamage();
+            createExplosion(p.position, 1);
+            scene.remove(p);
+            projectiles.splice(i, 1);
+            continue;
+          }
+          
+          if (p.userData.life <= 0) {
+            scene.remove(p);
+            projectiles.splice(i, 1);
+          }
+        }
+
+        // 5. Explosions Particles
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          const ex = explosions[i];
+          ex.mesh.position.add(ex.vel.clone().multiplyScalar(dt));
+          ex.vel.y -= 5 * dt; // Gravity on particles
+          ex.life -= dt;
+          
+          ex.mesh.scale.setScalar(ex.life / ex.maxLife);
+          
+          if (ex.life <= 0) {
+            scene.remove(ex.mesh);
+            explosions.splice(i, 1);
+          }
+        }
       }
 
       // Spin rotors
@@ -699,16 +942,16 @@
       renderer.render(scene, camera);
     }
 
-    function onWindowResize() {
+    window.addEventListener('resize', () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width, height);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-    }
-    window.addEventListener('resize', onWindowResize);
-    onWindowResize();
+    });
 
+    // Init renderer size
+    renderer.setSize(container.clientWidth, container.clientHeight);
     animate();
 
   </script>
